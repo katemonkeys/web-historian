@@ -1,6 +1,15 @@
 var path = require('path');
 var fs = require('fs');
 var headers = {};
+var mysql = require('mysql');
+
+mysqlClient = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'web_historian',
+  supportBigNumbers: true
+});
 
 var mimeTypes = {
   '.js' : 'text/javascript',
@@ -76,6 +85,7 @@ var handlePOST = function(request, response){
     // console.log("something happened, yo: ", body);
     urlName = body.split("=")[1];
     writeToFile(urlName);
+    writeToDB(urlName);
     response.writeHead(302, headers);
     response.end();
   });
@@ -91,6 +101,22 @@ var writeToFile = function(urlToAdd){
       console.log("Successfully appended to file!");
     });
   }
+};
+
+var writeToDB = function(urlToAdd){
+  mysqlClient.connect(function(err){
+    if (err) throw err;
+    console.log('i was able to connect to the mysql database!');
+
+    var toInsert = {site: urlToAdd};
+    var INSERT = 'INSERT INTO archives SET ?';
+    // var stringToInsert = 'INSERT INTO archives (site) values (\''+urlToAdd+'\');';
+    mysqlClient.query(INSERT, toInsert, function(err){
+      if (err) throw err;
+      mysqlClient.end();
+      process.exit();
+    });
+  });
 
 };
 
