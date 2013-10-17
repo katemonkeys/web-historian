@@ -1,11 +1,10 @@
 var fs = require('fs');
 var http = require('http-get');
-var sitesFile = __dirname + "/../../data/sites.txt";
 var sitesDir =  __dirname + "/../../data/sites/";
 
-exports.readUrls = function(){
-  var results = fs.readFileSync(sitesFile, 'utf8').split('\n');
-  return results;
+exports.readUrls = function(url, cb){
+  var results = fs.readFileSync(url, 'utf8').split('\n');
+  return cb(results);
 };
 
 exports.downloadUrls = function(urls){
