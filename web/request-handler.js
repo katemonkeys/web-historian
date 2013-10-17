@@ -18,7 +18,7 @@ var mimeTypes = {
   '.html': 'text/html'
 };
 
-module.exports.datadir = path.join(__dirname, "/../data/sites.txt"); // tests will need to override this.
+module.exports.datadir = path.join(__dirname, "/../data/sites.txt");
 
 module.exports.handleRequest = function (request, response) {
   if (request.method === 'GET') {
@@ -34,13 +34,12 @@ module.exports.handleRequest = function (request, response) {
 
 
 //
-// ------------ GET ------------------
+// ------------ SUB-HANDLERS: ------------------
 //
 var handleGET = function(request, response){
   var fileName = path.basename(request.url) || "index.html";
   var fileExt = path.extname(request.url);
   var statusCode = 200;
-  // console.log("fileExt="+fileExt);
   var fullPath;
 
   // --  checks if should serve archived content or client interface
@@ -51,7 +50,6 @@ var handleGET = function(request, response){
   }
 
   // -- checks if file exists and serves or returns 404
-
   if(fs.existsSync(fullPath)){
     fs.readFile(fullPath, function(err, stuff){
       if(!err){
@@ -70,19 +68,15 @@ var handleGET = function(request, response){
 };
 
 
-
-//
-// ------------ POST ------------------
-//
 var handlePOST = function(request, response){
-  // console.log("recieved POST request");
   var body = "";
   var urlName;
+
   request.on('data', function(data){
     body += data;
   });
+
   request.on('end', function(){
-    // console.log("something happened, yo: ", body);
     urlName = body.split("=")[1];
     writeToFile(urlName);
     writeToDB(urlName);
@@ -98,30 +92,17 @@ var writeToFile = function(urlToAdd){
   } else {
     fs.appendFile(module.exports.datadir,urlToAdd+"\n", function(err) {
       if(err) throw err;
-      console.log("Successfully appended to file!");
     });
   }
 };
 
 var writeToDB = function(urlToAdd){
-  mysqlClient.connect(function(err){
-    if (err) throw err;
-    console.log('i was able to connect to the mysql database!');
-
     var toInsert = {site: urlToAdd};
-    var INSERT = 'INSERT INTO archives SET ?';
-    // var stringToInsert = 'INSERT INTO archives (site) values (\''+urlToAdd+'\');';
-    mysqlClient.query(INSERT, toInsert, function(err){
-      if (err) throw err;
-      mysqlClient.end();
-      process.exit();
+    var headerString = 'INSERT INTO archives SET ?';
+    mysqlClient.query(headerString, toInsert, function(err){
+      console.log("inserted URL");
     });
-  });
-
 };
-
-
-
 
 
 
