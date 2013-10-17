@@ -9,7 +9,7 @@ var mimeTypes = {
   '.html': 'text/html'
 };
 
-module.exports.datadir = path.join(__dirname, "../data/sites.txt"); // tests will need to override this.
+module.exports.datadir = path.join(__dirname, "/../data/sites.txt"); // tests will need to override this.
 
 module.exports.handleRequest = function (request, response) {
   if (request.method === 'GET') {
@@ -30,7 +30,8 @@ module.exports.handleRequest = function (request, response) {
 var handleGET = function(request, response){
   var fileName = path.basename(request.url) || "index.html";
   var fileExt = path.extname(request.url);
-  console.log("fileExt="+fileExt);
+  var statusCode = 200;
+  // console.log("fileExt="+fileExt);
   var fullPath;
 
   if (fileName === "index.html" || fileExt === ".css" || fileExt === ".js") {
@@ -41,7 +42,7 @@ var handleGET = function(request, response){
   fs.readFile(fullPath, function(err, stuff){
     if(!err){
       headers['Content-Type'] = mimeTypes[fileExt];
-      response.writeHead(200,headers);
+      response.writeHead(statusCode, headers);
       response.end(stuff);
     }else{
       console.log("there's a problem   ", err);
@@ -55,14 +56,43 @@ var handleGET = function(request, response){
 // ------------ POST ------------------
 //
 var handlePOST = function(request, response){
-  console.log("recieved POST request");
+  // console.log("recieved POST request");
   var body = "";
+  var urlName;
   request.on('data', function(data){
     body += data;
   });
   request.on('end', function(){
-    console.log("something happened yo", body);
-    response.writeHead(201, headers);
+    // console.log("something happened, yo: ", body);
+    urlName = body.split("=")[1];
+    writeToFile(urlName);
+    response.writeHead(302, headers);
     response.end();
   });
 };
+
+var writeToFile = function(urlToAdd){
+  var file = __dirname + "/../data/sites/"+urlToAdd;
+  if (fs.existsSync(file)) {
+    return;
+  } else {
+    // var stream = fs.createWriteStream(module.exports.datadir);
+    // stream.once('open', function(fd) {
+      // stream.append(urlToAdd + "\n");
+      // stream.end();
+    // });
+    fs.appendFile(module.exports.datadir,urlToAdd+"\n", function(err) {
+      if(err) throw err;
+      console.log("Successfully appended to file!");
+    });
+  }
+
+};
+
+
+
+
+
+
+
+
