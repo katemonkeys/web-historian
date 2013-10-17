@@ -34,20 +34,30 @@ var handleGET = function(request, response){
   // console.log("fileExt="+fileExt);
   var fullPath;
 
+  // --  checks if should serve archived content or client interface
   if (fileName === "index.html" || fileExt === ".css" || fileExt === ".js") {
     fullPath = __dirname+"/public/"+fileName;
   } else {
     fullPath = __dirname + "/../data/sites/" + fileName;
   }
-  fs.readFile(fullPath, function(err, stuff){
-    if(!err){
-      headers['Content-Type'] = mimeTypes[fileExt];
-      response.writeHead(statusCode, headers);
-      response.end(stuff);
-    }else{
-      console.log("there's a problem   ", err);
-    }
-  });
+
+  // -- checks if file exists and serves or returns 404
+
+  if(fs.existsSync(fullPath)){
+    fs.readFile(fullPath, function(err, stuff){
+      if(!err){
+        headers['Content-Type'] = mimeTypes[fileExt];
+        response.writeHead(statusCode, headers);
+        response.end(stuff);
+      }else{
+        console.log("there's a problem   ", err);
+      }
+    });
+  } else{
+    response.writeHead(404, headers);
+    response.end();
+  }
+
 };
 
 
@@ -76,11 +86,6 @@ var writeToFile = function(urlToAdd){
   if (fs.existsSync(file)) {
     return;
   } else {
-    // var stream = fs.createWriteStream(module.exports.datadir);
-    // stream.once('open', function(fd) {
-      // stream.append(urlToAdd + "\n");
-      // stream.end();
-    // });
     fs.appendFile(module.exports.datadir,urlToAdd+"\n", function(err) {
       if(err) throw err;
       console.log("Successfully appended to file!");
