@@ -1,15 +1,6 @@
 var path = require('path');
 var fs = require('fs');
 var headers = {};
-var mysql = require('mysql');
-
-mysqlClient = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'web_historian',
-  supportBigNumbers: true
-});
 
 var mimeTypes = {
   '.js' : 'text/javascript',
@@ -31,7 +22,6 @@ module.exports.handleRequest = function (request, response) {
     console.log(exports.datadir);
   }
 };
-
 
 //
 // ------------ SUB-HANDLERS: ------------------
@@ -67,7 +57,6 @@ var handleGET = function(request, response){
 
 };
 
-
 var handlePOST = function(request, response){
   var body = "";
   var urlName;
@@ -79,7 +68,7 @@ var handlePOST = function(request, response){
   request.on('end', function(){
     urlName = body.split("=")[1];
     writeToFile(urlName);
-    writeToDB(urlName);
+    // writeToDB(urlName);
     response.writeHead(302, headers);
     response.end();
   });
@@ -96,13 +85,6 @@ var writeToFile = function(urlToAdd){
   }
 };
 
-var writeToDB = function(urlToAdd){
-    var toInsert = {site: urlToAdd};
-    var headerString = 'INSERT INTO archives SET ?';
-    mysqlClient.query(headerString, toInsert, function(err){
-      console.log("inserted URL");
-    });
-};
 
 
 
